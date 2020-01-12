@@ -1,4 +1,5 @@
 #include "pch.h"
+
 void Mesh::LoadMesh(const std::string& filename)
 {
 
@@ -9,14 +10,8 @@ void Mesh::LoadMesh(const std::string& filename)
 	std::string war, err;
 	std::string directory = filename.substr(0, filename.find_last_of('/'));
 	//bool ret;
-	 bool ret =  LoadObj(
-	 	&attrib,
-	 	&shapes,
-	 	&materials,
-	 	&war,
-	 	&err,
-	 	inputfile.c_str(),
-	 	directory.c_str());
+	 bool ret =  LoadObj(	 	&attrib,	 	&shapes,	 	&materials,	 	&war,
+	 	&err,	 	inputfile.c_str(),	 	directory.c_str());
 
 	if (!err.empty()) // `err` may contain warning message.
 	{
@@ -61,19 +56,19 @@ void Mesh::LoadMesh(const std::string& filename)
 				tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
 				//faces
-				float vx = attrib.vertices[3  * idx.vertex_index + 0];
-				float vy = attrib.vertices[3  * idx.vertex_index + 1];
-				float vz = attrib.vertices[3  * idx.vertex_index + 2];
+				float vx = attrib.vertices[3l * (size_t)idx.vertex_index + 0l];
+				float vy = attrib.vertices[3l * (size_t)idx.vertex_index + 1l];
+				float vz = attrib.vertices[3l * (size_t)idx.vertex_index + 2l];
 
 				//normals
-				float nx = attrib.normals[3  * idx.normal_index + 0];
-				float ny = attrib.normals[3  * idx.normal_index + 1];
-				float nz = attrib.normals[3  * idx.normal_index + 2];
+				float nx = attrib.normals[3l  * (size_t)idx.normal_index + 0l];
+				float ny = attrib.normals[3l * (size_t)idx.normal_index + 1l];
+				float nz = attrib.normals[3l * (size_t)idx.normal_index + 2l];
 
 				//UVs
-				float tx = attrib.texcoords[2  * idx.texcoord_index + 0];
-				float ty = attrib.texcoords[2  * idx.texcoord_index + 1];
-				vec3 vertex = vec3(vx, vy, vz);
+				float tx = attrib.texcoords[2l  * (size_t)idx.texcoord_index + 0l];
+				float ty = attrib.texcoords[2l * (size_t)idx.texcoord_index + 1l];
+				vec3 vertex = vec3(vx, vy, vz);	 
 
 				mesh_vertices.emplace_back(vertex);
 
@@ -84,7 +79,7 @@ void Mesh::LoadMesh(const std::string& filename)
 			index_offset += fv;
 
 			// per-face material
-			shapes[s].mesh.material_ids[f];
+			//shapes[s].mesh.material_ids[f];
 		}
 	}
 

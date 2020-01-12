@@ -1,3 +1,4 @@
+#define TINYOBJLOADER_IMPLEMENTATION
 #include  "pch.h"
 
 __device__ bool hit_triangle(const ray& r) {
@@ -65,7 +66,9 @@ int nx = 1200;
 
 	int num_pixels = nx * ny;
 	size_t fb_size = num_pixels * sizeof(vec3);
-//	Mesh basdas = Mesh("Spyro/Spyro.obj");
+	Mesh basdas = Mesh("Spyro/Spyro.obj");
+
+	
 
 	// allocate FB
 	vec3* fb;
@@ -76,6 +79,8 @@ int nx = 1200;
 	// Render our buffer
 	dim3 blocks(nx / tx + 1, ny / ty + 1);
 	dim3 threads(tx, ty);
+
+
 
 	render << <blocks, threads >> > (fb, nx, ny,
 		vec3(-2.0, -1.0, -1.0),
