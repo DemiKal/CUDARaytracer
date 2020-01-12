@@ -7,7 +7,11 @@
 #include <time.h>
 #include <math.h>
 #include <stdlib.h> 
+#include <vector>
+#include <string.h>
 
+//vendor 
+#include "vendor/tiny_obj_loader.h"
 
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
 static void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line)
@@ -27,6 +31,9 @@ static void check_cuda(cudaError_t result, char const* const func, const char* c
 #include "ray.h"
 #include "Triangle.h"
 #include "Add Kernel.cuh"
+#include "vec2f.h"
+#include "UV.h"
+#include "Mesh.h"
 
 //#include "sphere.cu"
 //logging

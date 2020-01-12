@@ -21,6 +21,16 @@
     <ClInclude Include="Triangle.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="vec2f.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="UV.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -30,6 +40,9 @@
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="vec3.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="UV.cpp" />
+    <ClCompile Include="vec2f.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header files">

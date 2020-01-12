@@ -65,6 +65,7 @@ int nx = 1200;
 
 	int num_pixels = nx * ny;
 	size_t fb_size = num_pixels * sizeof(vec3);
+//	Mesh basdas = Mesh("Spyro/Spyro.obj");
 
 	// allocate FB
 	vec3* fb;
@@ -99,17 +100,13 @@ int nx = 1200;
 			std::cout << ir << " " << ig << " " << ib << "\n";
 		}
 	}
-	//std::cerr << "d " << timer_seconds << " seconds.\n";
-
+ 
 	checkCudaErrors(cudaFree(fb));
 
 	// cudaDeviceReset must be called before exiting in order for profiling and
 	// tracing tools such as Nsight and Visual Profiler to show complete traces.
-	auto cudaStatus = cudaDeviceReset();
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaDeviceReset failed!");
-		return 1;
-	}
+	checkCudaErrors( cudaDeviceReset());
+	   
 
 	return 0;
 
