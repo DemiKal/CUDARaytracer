@@ -88,6 +88,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ray.cpp" />
+    <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="vec3.cpp" />
     <CudaCompile Include="Add Kernel.cu" />
     <CudaCompile Include="main.cpp">
@@ -97,6 +98,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </CudaCompile>
+    <CudaCompile Include="Sphere.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -105,6 +107,7 @@
     <ClInclude Include="Add Kernel.cuh" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="Triangle.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

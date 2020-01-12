@@ -1,29 +1,4 @@
-
-//#include "pch.h"
 #include  "pch.h"
-
-#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
-
-void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line) {
-	if (result) {
-		std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " <<
-			file << ":" << line << " '" << func << "' \n";
-		// Make sure we call CUDA Device Reset before exiting
-		cudaDeviceReset();
-		exit(99);
-	}
-}
-
-struct Triangle {
-private:
-	vec3 a, b, c;
-public:
-	__device__ Triangle(const vec3& A, const vec3& B, const vec3& C) { a = A; b = B; c = C; }
-	__device__ vec3 GetA() { return a; }
-	__device__ vec3 GetB() { return b; }
-	__device__ vec3 GetC() { return c; }
-
-};
 
 __device__ bool hit_triangle(const ray& r) {
 	Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
@@ -54,18 +29,8 @@ __device__ bool hit_triangle(const ray& r) {
 	return t > 0;
 	
 }
-__device__ bool hit_sphere(const vec3& center, float radius, const ray& r) {
-	vec3 oc = r.GetOrigin() - center;
-	float a = dot(r.GetDirection(), r.GetDirection());
-	float b = 2.0f * dot(oc, r.GetDirection());
-	float c = dot(oc, oc) - radius * radius;
-	float discriminant = b * b - 4.0f * a * c;
-	return (discriminant > 0.0f);
-}
-
+ 
 __device__ vec3 color(const ray& r) {
-	//if (hit_sphere(vec3(0, 0, -2), 0.5f, r))
-	//	return vec3(1, 1, 0);
 	if (hit_triangle(r))return vec3(0.1, 0.7, 0.41);
 
 	vec3 unit_direction = unit_vector(r.GetDirection());
@@ -84,16 +49,13 @@ __global__ void render(vec3* fb, int max_x, int max_y,
 	float v = float(j) / float(max_y);
 	ray r(origin, lower_left_corner + u * horizontal + v * vertical);
 
-	//hit_spheres(r);
-
 	fb[pixel_index] = color(r);
 }
 
 
 int main()
 {
-
-	int nx = 1200;
+int nx = 1200;
 	int ny = 600;
 	int tx = 8;
 	int ty = 8;
@@ -137,29 +99,9 @@ int main()
 			std::cout << ir << " " << ig << " " << ib << "\n";
 		}
 	}
+	//std::cerr << "d " << timer_seconds << " seconds.\n";
 
 	checkCudaErrors(cudaFree(fb));
-
-
-
-
-
-
-
-	//// Add vectors in parallel.
-	//cudaError_t cudaStatus = addWithCuda(c, a, b, arraySize);
-	//if (cudaStatus != cudaSuccess) {
-	//	fprintf(stderr, "addWithCuda failed!");
-	//	return 1;
-	//}
-	//printf("{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}\n",
-	//	c[0], c[1], c[2], c[3], c[4]);
-
-
-
-
-
-
 
 	// cudaDeviceReset must be called before exiting in order for profiling and
 	// tracing tools such as Nsight and Visual Profiler to show complete traces.
@@ -174,13 +116,3 @@ int main()
 
 }
 
-//#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
-//void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line) {
-//	if (result) {
-//		std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " <<
-//			file << ":" << line << " '" << func << "' \n";
-//		// Make sure we call CUDA Device Reset before exiting
-//		cudaDeviceReset();
-//		exit(99);
-//	}
-//}
