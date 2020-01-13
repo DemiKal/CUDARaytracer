@@ -40,6 +40,7 @@ __device__ vec3 color(const ray& r, Triangle* triangles, int triSize) {
 	return (1.0f - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
+texture<float4, 1, cudaReadModeElementType> texInput;
 
 __global__ void render(vec3* fb, int max_x, int max_y, vec3 lower_left_corner,
 	vec3 horizontal, vec3 vertical, vec3 origin, Triangle* triBuffer, int nrTris, int* dev_a, vec3* dev_v) {
@@ -50,7 +51,16 @@ __global__ void render(vec3* fb, int max_x, int max_y, vec3 lower_left_corner,
 	float u = float(i) / float(max_x);
 	float v = float(j) / float(max_y);
 	ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-	
+
+	//if ((i == 0) || (j == 0))
+	//{
+	//	float4 A = tex1Dfetch(texInput, 0);
+	//	float4 B = tex1Dfetch(texInput, 1);
+	//	float4 C = tex1Dfetch(texInput, 2);
+	//
+	//
+	//	return;
+	//}
 	//vec3 colour = vec3(0, 0, 1);
 	//fb[pixel_index] = colour;
 
@@ -87,17 +97,64 @@ __global__ void render(vec3* fb, int max_x, int max_y, vec3 lower_left_corner,
 	//
 	//}
 
-	 
-	Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
+
+	//Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
 	vec3 colour = vec3(0, 0, 0);
+	//if (i > 0 || j > 0) return;
+	const vec3 orig = r.GetOrigin();
+	const vec3 dir = r.GetDirection();
+	const vec3 move(0, 0, 0);
+
 	for (int k = 0; k < 150; k++) {
-		if (hit_triangle(r, triBuffer[k])) {
-			colour = vec3(1.f, 0.3f, .7f);
-			break;
-		}
+
+		float4 A = tex1Dfetch(texInput, 3*  k + 0);
+		float4 B = tex1Dfetch(texInput, 3*  k + 1);
+		float4 C = tex1Dfetch(texInput, 3*  k + 2);
+
+ 		vec3 v0 = move + vec3(A.x, A.y, A.z);
+		vec3 v1 = move + vec3(B.x, B.y, B.z);
+		vec3 v2 = move + vec3(C.x, C.y, C.z);
+		vec3 v0v1 = v1 - v0;
+		vec3 v0v2 = v2 - v0;
+		vec3 pvec = cross(dir, v0v2);
+		float det = dot(v0v1, pvec);
+
+		float invDet = 1 / det;
+
+		vec3 tvec = orig - v0;
+
+		float u = dot(tvec, pvec) * invDet;
+		if (u < 0 || u > 1)  continue;  
+
+		vec3 qvec = cross(tvec, v0v1);
+		float v = dot(dir, qvec) * invDet;
+		if (v < 0 || u + v > 1)   continue;  
+
+		float t = dot(v0v2, qvec) * invDet;
+		colour = vec3(1.f, 0.3f, .7f);
+		break;
+		//return t > 0;
+
+
+
+
+
+
+
+
+		//vec3 Aa(A.x, A.y, A.z);
+		//vec3 Bb(B.x, B.y, B.z);
+		//vec3 Cc(C.x, C.y, C.z);
+		//
+		//Triangle tri(Aa, Bb, Cc);
+		//
+		//if (hit_triangle(r, tri)) {
+		//	colour = vec3(1.f, 0.3f, .7f);
+		//	break;
+		//}
 	}
 	//fb[pixel_index] = color(r, triBuffer, nrTris);
-	fb[pixel_index] = colour;
+	fb[pixel_index] = colour; 
 }
 
 
@@ -116,6 +173,67 @@ int main()
 	size_t fb_size = num_pixels * sizeof(vec3);
 	Mesh spyro = Mesh("Spyro/Spyro.obj");
 	vec3 center = spyro.CalcCenter();
+	float* dev_triangle_p;
+
+
+	int number_of_triangles = spyro.m_faces.size();
+	std::vector<float4> host_triangles;
+	int tribufferSize = number_of_triangles * sizeof(Triangle);
+
+	for (auto& f : spyro.m_faces) {
+		//vec3 c = (f.GetA() + f.GetB() + f.GetC()) / 3.0f;
+		//sum += c;
+		vec3 A = f.GetA();
+		vec3 B = f.GetB();
+		vec3 C = f.GetC();
+
+		host_triangles.emplace_back(make_float4(A.x(), A.y(), A.z(), 0));
+		host_triangles.emplace_back(make_float4(B.x(), B.y(), B.z(), 0));
+		host_triangles.emplace_back(make_float4(C.x(), C.y(), C.z(), 0));
+
+	}
+
+
+	texInput.addressMode[0] = cudaAddressModeBorder;
+	texInput.addressMode[1] = cudaAddressModeBorder;
+	texInput.filterMode = cudaFilterModePoint;
+	texInput.normalized = false;
+	float* dev_triangles = 0;
+	size_t offset = 0;
+
+	size_t coalescedSize = number_of_triangles * 3 * sizeof(float4);
+
+	checkCudaErrors(cudaMalloc((void**)&dev_triangles, coalescedSize));
+
+	checkCudaErrors(cudaMemcpy(dev_triangles, &host_triangles[0], coalescedSize, cudaMemcpyHostToDevice));
+
+
+	const cudaChannelFormatDesc cd = cudaCreateChannelDesc<float4>();
+	//channelDesc = cudaChannelFormatKindFloat;
+	checkCudaErrors(cudaBindTexture(&offset, &texInput, dev_triangles, &cd, coalescedSize));
+
+	// allocate memory for the triangle meshes on the GPU
+	//cudaMalloc((void**)&dev_triangle_p, tribufferSize);
+	//
+	//// copy triangle data to GPU
+	//cudaMemcpy(dev_triangle_p, &spyro.m_faces[0], tribufferSize, cudaMemcpyHostToDevice);
+	//
+	//// load triangle data into a CUDA texture
+	////bindTriangles(dev_triangle_p, total_num_triangles);
+	//
+	//triangle_texture.normalized = false;                      // access with normalized texture coordinates
+	//triangle_texture.filterMode = cudaFilterModePoint;        // Point mode, so no 
+	//triangle_texture.addressMode[0] = cudaAddressModeWrap;    // wrap texture coordinates
+	//
+	//size_t size = sizeof(Triangle) * number_of_triangles;
+	//const cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float3>();
+	////cudaBindTexture(0, triangle_texture, dev_triangle_p, &channelDesc, size);
+
+
+
+	//size_t size = sizeof(float4) * number_of_triangles * 3;
+	//cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+	//cudaBindTexture(0, triangle_texture, dev_triangle_p, channelDesc, size);
 
 
 	// allocate FB

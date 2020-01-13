@@ -1,6 +1,7 @@
 #pragma once
 //libs
 #include "cuda_runtime.h" 
+//#include "$CUDA_HOME/samples/common/inc/helper_cuda.h"
 #include <stdio.h>
 #include <iostream> 
 #include "device_launch_parameters.h"  
