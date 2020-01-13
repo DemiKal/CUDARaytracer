@@ -50,52 +50,52 @@ __global__ void render(vec3* fb, int max_x, int max_y, vec3 lower_left_corner,
 	float u = float(i) / float(max_x);
 	float v = float(j) / float(max_y);
 	ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-	vec3 colour = vec3(0, 0, dev_a[4]);
-	fb[pixel_index] = colour;
+	
+	//vec3 colour = vec3(0, 0, 1);
+	//fb[pixel_index] = colour;
 
-	return;
-	for (int w = 0; w < 1; w++) {
-		Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
-		const vec3 orig = r.GetOrigin();
-		const vec3 dir = r.GetDirection();
-		const vec3 move(0, 0, 0);
-		vec3 v0 = move + tri.GetA();
-		vec3 v1 = move + tri.GetB();
-		vec3 v2 = move + tri.GetC();
-		vec3 v0v1 = v1 - v0;
-		vec3 v0v2 = v2 - v0;
-		vec3 pvec = cross(dir, v0v2);
-		float det = dot(v0v1, pvec);
+	//return;
+	//for (int w = 0; w < 1; w++) {
+	//	Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
+	//	const vec3 orig = r.GetOrigin();
+	//	const vec3 dir = r.GetDirection();
+	//	const vec3 move(0, 0, 0);
+	//	vec3 v0 = move + tri.GetA();
+	//	vec3 v1 = move + tri.GetB();
+	//	vec3 v2 = move + tri.GetC();
+	//	vec3 v0v1 = v1 - v0;
+	//	vec3 v0v2 = v2 - v0;
+	//	vec3 pvec = cross(dir, v0v2);
+	//	float det = dot(v0v1, pvec);
+	//
+	//	float invDet = 1 / det;
+	//
+	//	vec3 tvec = orig - v0;
+	//
+	//	float u = dot(tvec, pvec) * invDet;
+	//	if (u < 0 || u > 1) continue;
+	//
+	//	vec3 qvec = cross(tvec, v0v1);
+	//	float v = dot(dir, qvec) * invDet;
+	//	if (v < 0 || u + v > 1) continue;
+	//
+	//	float t = dot(v0v2, qvec) * invDet;
+	//	if (t > 0) {
+	//		colour = vec3(1, 1, 1);
+	//		break;
+	//	}
+	//
+	//}
 
-		float invDet = 1 / det;
-
-		vec3 tvec = orig - v0;
-
-		float u = dot(tvec, pvec) * invDet;
-		if (u < 0 || u > 1) continue;
-
-		vec3 qvec = cross(tvec, v0v1);
-		float v = dot(dir, qvec) * invDet;
-		if (v < 0 || u + v > 1) continue;
-
-		float t = dot(v0v2, qvec) * invDet;
-		if (t > 0) {
-			colour = vec3(1, 1, 1);
+	 
+	Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
+	vec3 colour = vec3(0, 0, 0);
+	for (int k = 0; k < 150; k++) {
+		if (hit_triangle(r, triBuffer[k])) {
+			colour = vec3(1.f, 0.3f, .7f);
 			break;
 		}
-
 	}
-
-
-
-	//Triangle tri({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 });
-	//vec3 colour = vec3(0, 0, 0);
-	////for (int k = 0; k < nrTris/2; k++) {
-	//	if (hit_triangle(r, triBuffer[412])) {
-	//		colour = vec3(1, 1, 1);
-	//		//break;
-	//	}
-	//}
 	//fb[pixel_index] = color(r, triBuffer, nrTris);
 	fb[pixel_index] = colour;
 }
@@ -115,21 +115,22 @@ int main()
 	int num_pixels = nx * ny;
 	size_t fb_size = num_pixels * sizeof(vec3);
 	Mesh spyro = Mesh("Spyro/Spyro.obj");
-
+	vec3 center = spyro.CalcCenter();
 
 
 	// allocate FB
 	vec3* fb;
 	checkCudaErrors(cudaMallocManaged((void**)&fb, fb_size));
 
-	const Triangle  tris[1] = { Triangle({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 }) }; //!
-	const int nrFaces = 1;
-	size_t triangleBufferSize =   sizeof(Triangle); //!
+	//const Triangle  tris[1] = { Triangle({ -4,-1, -3 }, { 2,-1, -3 }, { 0, 2,-3 }) }; //!
+	const int nrFaces = spyro.m_faces.size();
+	size_t triangleBufferSize = nrFaces * sizeof(Triangle); //!
 
 	Triangle* dev_triangleBuffer = 0;
 
 	checkCudaErrors(cudaMalloc((void**)&dev_triangleBuffer, triangleBufferSize));
-	checkCudaErrors(cudaMemcpy(dev_triangleBuffer, tris, triangleBufferSize, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(dev_triangleBuffer, &spyro.m_faces[0],
+		triangleBufferSize, cudaMemcpyHostToDevice));
 
 	const int arraySize = 5;
 	const int a[arraySize] = { 5, 4, 3, 2 ,1 };
