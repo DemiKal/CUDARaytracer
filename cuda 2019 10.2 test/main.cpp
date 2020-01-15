@@ -105,11 +105,11 @@ __global__ void render(vec3* fb, int max_x, int max_y, vec3 lower_left_corner,
 	const vec3 dir = r.GetDirection();
 	const vec3 move(0, 0, 0);
 
-	for (int k = 0; k < 150; k++) {
+	for (int k = 0; k < nrTris; k++) {
 
-		float4 A = tex1Dfetch(texInput, 3*  k + 0);
-		float4 B = tex1Dfetch(texInput, 3*  k + 1);
-		float4 C = tex1Dfetch(texInput, 3*  k + 2);
+		float4 A = tex1Dfetch(texInput, 3 *  k + 0);
+		float4 B = tex1Dfetch(texInput, 3 *  k + 1);
+		float4 C = tex1Dfetch(texInput, 3 *  k + 2);
 
  		vec3 v0 = move + vec3(A.x, A.y, A.z);
 		vec3 v1 = move + vec3(B.x, B.y, B.z);
@@ -163,15 +163,15 @@ int main()
 {
 	int nx = 1200;
 	int ny = 600;
-	int tx = 8;
-	int ty = 8;
+	int tx = 32;
+	int ty = 32;
 
 	std::cerr << "Rendering a " << nx << "x" << ny << " image ";
 	std::cerr << "in " << tx << "x" << ty << " blocks.\n";
 
 	int num_pixels = nx * ny;
 	size_t fb_size = num_pixels * sizeof(vec3);
-	Mesh spyro = Mesh("Spyro/Spyro.obj");
+	Mesh spyro = Mesh("Res/Meshes/cube.obj");
 	vec3 center = spyro.CalcCenter();
 	float* dev_triangle_p;
 

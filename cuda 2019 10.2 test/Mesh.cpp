@@ -36,7 +36,7 @@ void Mesh::LoadMesh(const std::string& filename)
 	std::vector<vec3> mesh_vertices;
 	std::vector<vec3> mesh_normals_preload;
 	std::vector<vec2f> mesh_UVs_preload;
-
+	bool hasUVs = true;
 	for (int s = 0; s < shapes.size(); s++)
 	{
 		// Loop over faces(polygon)
@@ -66,14 +66,21 @@ void Mesh::LoadMesh(const std::string& filename)
 				float nz = attrib.normals[3l * (size_t)idx.normal_index + 2l];
 
 				//UVs
-				float tx = attrib.texcoords[2l  * (size_t)idx.texcoord_index + 0l];
-				float ty = attrib.texcoords[2l * (size_t)idx.texcoord_index + 1l];
 				vec3 vertex = vec3(vx, vy, vz);	 
 
 				mesh_vertices.emplace_back(vertex);
 
 				mesh_normals_preload.emplace_back(vec3(nx, ny, nz));
-				mesh_UVs_preload.emplace_back(vec2f(tx, ty));
+
+				if (idx.texcoord_index < 0)
+					hasUVs = false;
+
+				if (hasUVs) {
+					float tx = attrib.texcoords[2l * (size_t)idx.texcoord_index + 0l];
+					float ty = attrib.texcoords[2l * (size_t)idx.texcoord_index + 1l];
+					mesh_UVs_preload.emplace_back(vec2f(tx, ty));
+				}
+				
 			}
 
 			index_offset += fv;
